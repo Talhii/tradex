@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
+    <title>Enter ask and bids</title>
+   
+  
+</head>
+<body>
+
+    <h3>Enter User id here</h3>
+    <input type="text" size="30" style="height:20px" id="userid-input">
+    <br>
+    <h3>Enter User name here</h3>
+    <input type="text" size="30" style="height:20px" id="name-input">
+    <br>
+    <h3>Enter productid</h3>
+    <input type="text" size="30" style="height:20px" id="product-id">
+    <br>
+    <br>
+    <h3>Enter productname</h3>
+    <input type="text" size="30" style="height:20px" id="product-input">
+    <br>
+    <br><br>
+
+    <h3>Bid</h3>
+    <input type="text" size="20" id="bid-input">
+     <br>
+    <button type="submit" id="send-bid">Send bid</button>
+    <button type="submit" id="matchbestask">Order with best price</button>
+
+    <br>
+    <br>
+   <div id="yourbid"></div>
+   <h2>OR</h2>
+   <h3>Ask</h3>
+    <input type="text" size="20" id="ask-input">
+    <br>
+    <button type="submit" id="send-ask">Send ask</button>
+    <button type="submit" id="matchbestbid">Order with best price</button>
+
+    <div id="yourask"></div>
+
+    <div id="order-matching"></div>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script>
+const socket = io('http://localhost:3000')
+const connected = document.getElementById('connected')
+const yourbid = document.getElementById('yourbid')
+const yourask = document.getElementById('yourask')
+const sendbid = document.getElementById('send-bid')
+const sendask = document.getElementById('send-ask')
+const matchbestask = document.getElementById('matchbestask')
+const matchbestbid = document.getElementById('matchbestbid')
+const ordermatching = document.getElementById('order-matching')
+
+
+var userid = document.getElementById('userid-input')
+var username = document.getElementById('name-input')
+var productid = document.getElementById('product-id')
+var productname = document.getElementById('product-input')
+var askInput = document.getElementById('ask-input')
+var bidInput = document.getElementById('bid-input')
+
+
+
+
+
+var a
+
+
+
+sendbid.addEventListener('click',function(){
+ //will must get all of these values from frontend automatically this is just for showing its workprocess
+    const userids = userid.value
+    const usernames = username.value
+    const productids = productid.value
+    const productnames = productname.value 
+    const bid = bidInput.value
+     yourbid.innerHTML = "Your bid : "+ bid
+     if(userids =='' || usernames == '' || productids == '' || productnames == '' || bid == '')
+     {
+        alert("Please enter all values")
+     }
+     else
+     {
+        socket.emit('new bid', {userids:userids,usernames: usernames,productids:productids,bid:bid,productnames:productnames})
+     }
+     
+    bidInput.value = ''
+})
+
+sendask.addEventListener('click',function(){
+    //will must get all of these values from frontend automatically this is just for showing its workprocess
+    const userids = userid.value
+    const usernames = username.value
+    const productids = productid.value
+    const productnames = productname.value 
+    const ask = askInput.value
+    yourask.innerHTML = "Your ask : "+ ask
+  
+    if(userids =='' || usernames == '' || productids == '' || productnames == '' || ask == '')
+    {
+       alert("Please enter all values")
+    }
+    else
+    {
+       socket.emit('new ask', {userids:userids,usernames: usernames,ask: ask,productids:productids,ask:ask,productnames:productnames})
+    }
+    askInput.value = ''
+})
+
+matchbestask.addEventListener('click',function(){
+    const userids = userid.value
+    const usernames = username.value
+    const productids = productid.value
+    const productnames = productname.value 
+    if(userids =='' || usernames == '' || productids == '' || productnames == '' )
+     {
+        alert("Please enter all values")
+     }
+    else
+    {
+        socket.emit('comparebestask',productids)
+    }
+   
+})
+
+matchbestbid.addEventListener('click',function(){
+    const userids = userid.value
+    const usernames = username.value
+    const productids = productid.value
+    const productnames = productname.value 
+    if(userids =='' || usernames == '' || productids == '' || productnames == '' )
+     {
+        alert("Please enter all values")
+     }
+    else
+    {
+        socket.emit('comparebestbid',productids)
+    }
+   
+})
+     
+    socket.on('comparebestask2',function(data){
+        const userids = userid.value
+        const usernames = username.value
+       ordermatching.innerHTML = "Order Executed with Best ask price : "+ data[0].Ask+"Sellername : "+ data[0].User_Name
+       socket.emit('deletebestask',data[0].Id)
+      socket.emit('updateordersbestask',{buyerid:userids,buyername:usernames,sellerid:data[0].User_Id,sellername :data[0].User_Name,price : data[0].Ask,productid:data[0].Product_Id,productname:data[0].Product_Name})  
+    })
+
+    socket.on('comparebestbid2',function(data){
+        const userids = userid.value
+        const usernames = username.value
+
+       ordermatching.innerHTML = "Order Executed with Best bid price : "+ data[0].Bid+" buyername : "+ data[0].User_Name
+       socket.emit('deletebestbid',data[0].Id)
+      socket.emit('updateordersbestbid',{buyerid:data[0].User_Id,buyername:data[0].User_Name,sellerid :userids,sellername :usernames,price : data[0].Bid,productid:data[0].Product_Id,productname:data[0].Product_Name})  
+    })
+
+    socket.on('compare',({ask1, bid1 })=>{
+        a=0
+        for(var i =0 ; i<ask1.length && a==0;i++)  {
+            for(var j =0 ; j<bid1.length && a==0;j++) {
+
+              if(ask1[i].Ask == bid1[j].Bid && ask1[i].Product_Id ==bid1[j].Product_Id )
+              {
+                  ordermatching.innerHTML ="Order executed : "+"Ask Price :"+ask1[i].Ask+"Productname :"+ask1[i].Product_Name+"  &&  Bid Price : "+bid1[j].Bid+"Productname "+bid1[j].Product_Name
+                  socket.emit('delete',{deleteask:ask1[i].Id,deletebid : bid1[j].Id})
+                  socket.emit('updateorders',{buyerid:bid1[j].User_Id,buyername:bid1[j].User_Name,sellerid :ask1[i].User_Id,sellername :ask1[i].User_Name,price : ask1[i].Ask,productid:bid1[j].Product_Id,productname:bid1[j].Product_Name})
+                  a=1
+              }
+            }
+         }
+    })
+
+
+    </script>
+   
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Ask and bids</title>
+</head>
+<body>
+
+    <input id="productid" type="text" size = "20" placeholder="Enter product id">
+    <button id="getask">Views asks</button>
+    <button id="getbid">Views bids</button>
+    
+    <h1>Bids</h1>
+    <div id="container"></div>
+    <h1>Asks</h1>
+    <div id="container1"></div>
+    
+     <!-- Starting of script -->
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script>
+        
+    const socket = io('http://localhost:3000')
+    const Container = document.getElementById('container')
+    const Container1 = document.getElementById('container1')
+    const getask = document.getElementById('getask')
+    const getbid = document.getElementById('getbid')
+    const productid = document.getElementById('productid')
+
+    getask.addEventListener('click',function(){
+         const productids = productid.value
+         socket.emit('getask',{product:productids})
+    })
+
+    getbid.addEventListener('click',function(){
+         const productids = productid.value
+         socket.emit('getbid',{product:productids})
+    })
+       
+    socket.on('initial bids', function(data){
+    
+    Container.innerHTML = ''
+    for (var i = 0; i < data.length; i++){ 
+      Container.innerHTML += '<div>'+ "id :" +data[i].Id+" Bid Value : "+data[i].Bid +" Productname : "+data[i].Product_Name +'</div>'
+    }
+    })
+
+    socket.on('initial asks', function(data){
+    
+        Container1.innerHTML = ''
+        for (var i = 0; i < data.length; i++){ 
+          Container1.innerHTML += '<div>'+ "id :" +data[i].Id+" Ask Value : "+data[i].Ask +" Product name : "+data[i].Product_Name +'</div>'
+        }
+    })
+    </script>
+    <!-- Ending of Script -->
+    
+    
+</body>
+</html>

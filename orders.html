@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order(Admin Side)</title>
+    
+</head>
+<body>
+    <div id="container1"></div>
+    <script  src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script>
+
+    const socket = io('http://localhost:3000')
+    var Container1 = document.getElementById('container1')
+
+    socket.on('initial orders', function(data){
+    
+    Container1.innerHTML = ''
+    for (var i = 0; i < data.length; i++){ 
+      Container1.innerHTML += '<div>'+ "id :" +data[i].Id+" Buyer id : "+data[i].Buyer_Id +" Buyer Name : "+data[i].Buyer_Name + " Seller id : "+data[i].Seller_Id +" Seller Name : "+data[i].Seller_Name+" Matching Price : "+data[i].Price +" Product ID : "+data[i].Product_Id+" Product Name : "+data[i].Product_Name+  '</div>'
+    } 
+    })
+
+    socket.on('update',function(){
+     socket.emit('showorders')
+    })
+
+    </script>
+    <br>
+    
+</body>
+</html>
