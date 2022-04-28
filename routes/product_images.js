@@ -6,6 +6,7 @@ var jwt = require('jsonwebtoken');
 var fs = require('fs');
 var sizeOf = require('image-size');
 const resizeImg = require('resize-img');
+const Joi = require('joi');
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -107,7 +108,49 @@ router.get('/getimage',ensureToken, function(request, response) {
 
 
 
-router.get('/getimage/:id',ensureToken, function(request, response) {
+router.get('/getimage/:id',ensureToken, function(request, response) 
+{
+
+  // fetch the request data
+ const data = req.params;
+
+ // define the validation schema
+  const schema = Joi.object().keys({
+ 
+ 
+      id: Joi.number().integer().min(1).max(2000),
+ 
+     
+ 
+  });
+ 
+  // validate the request data against the schema
+  Joi.validate(data, schema, (err, value) => {
+ 
+      // create a random number as id
+      //const id = Math.ceil(Math.random() * 9999999);
+ 
+      if (err) {
+          // send a 422 error response if validation fails
+          res.status(422).json({
+              status: 'error',
+              message: 'Invalid request data',
+              data: data
+          });
+      } else {
+ 
+ 
+  // else part
+
+
+
+
+
+
+
+
+
+
   var id = request.params.id;
   pool.query(`select * from product_images WHERE id =${id}`, function(err, result) {
     //  response.writeHead(200, {
@@ -117,7 +160,10 @@ router.get('/getimage/:id',ensureToken, function(request, response) {
       response.send(result); // Send the image to the browser.
     //  response.json({status : "OK"})
     });
-});
+      }
+  })
+
+  });
 
 
 

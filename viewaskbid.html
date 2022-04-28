@@ -36,6 +36,15 @@
          const productids = productid.value
          socket.emit('getbid',{product:productids})
     })
+
+    socket.on('getagainbid',function(data){
+      socket.emit('getupdatedbid',{product:data})
+    })
+
+    socket.on('getagainask',function(data){
+      socket.emit('getupdatedask',{product:data})
+    })
+       
        
     socket.on('initial bids', function(data){
     

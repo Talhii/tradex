@@ -5,14 +5,44 @@ var connection = require('../db');
 var bodyParser = require('body-parser');
 router.use(bodyParser.json());
 var ro = require('../app');
+const Joi = require('joi');
 
 
 // App.js   /signin
 router.post('/seller',(req,res)=>
-{
+{   
+  // fetch the request data
+ const data = req.body;
+
+ // define the validation schema
+  const schema = Joi.object().keys({
+ 
+ 
+
+      email: Joi.string().email({ minDomainAtoms: 2 }),
+      psswrd: Joi.string().required(),
+ 
+  });
+ 
+  // validate the request data against the schema
+  Joi.validate(data, schema, (err, value) => {
+ 
+      // create a random number as id
+      //const id = Math.ceil(Math.random() * 9999999);
+ 
+      if (err) {
+          // send a 422 error response if validation fails
+          res.status(422).json({
+              status: 'error',
+              message: 'Invalid request data',
+              data: data
+          });
+      } else {
+   // else part
     var email = req.body.email;
-    var sql = `SELECT * FROM customers WHERE Email=?`;
-    connection.query(sql,[email],function(err,row){
+    var psswrd = req.body.psswrd;
+    var sql = `SELECT * FROM customers WHERE Email=? AND User_Password=?`;
+    connection.query(sql,[email,psswrd],function(err,row){
       
         if(err)
         {
@@ -37,16 +67,45 @@ router.post('/seller',(req,res)=>
  
     })
    
- 
-
+}
+      })
 });
 
 
 router.post('/buyer',(req,res)=>
-{
+{   
+  // fetch the request data
+ const data = req.body;
+
+ // define the validation schema
+  const schema = Joi.object().keys({
+ 
+ 
+      email: Joi.string().email({ minDomainAtoms: 2 }),
+      psswrd: Joi.string().required(),
+ 
+  });
+ 
+  // validate the request data against the schema
+  Joi.validate(data, schema, (err, value) => {
+ 
+      // create a random number as id
+      //const id = Math.ceil(Math.random() * 9999999);
+ 
+      if (err) {
+          // send a 422 error response if validation fails
+          res.status(422).json({
+              status: 'error',
+              message: 'Invalid request data',
+              data: data
+          });
+      } else {
+   // else part
+  
     var email = req.body.email;
-    var sql = `SELECT * FROM customers WHERE Email=?`;
-    connection.query(sql,[email],function(err,row){
+    var psswrd = req.body.psswrd;
+    var sql = `SELECT * FROM customers WHERE Email=? AND User_Password=?`;
+    connection.query(sql,[email,psswrd],function(err,row){
       
         if(err)
         {
@@ -70,8 +129,8 @@ router.post('/buyer',(req,res)=>
 } }
  
     })
-   
- 
+} 
+})
 
 });
 

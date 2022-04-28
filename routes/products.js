@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var db = require('../db');
 var bodyParser = require('body-parser');
+const Joi = require('joi');
 
 router.use(bodyParser.json()); // for parsing application/json
 router.use(bodyParser.urlencoded({extended: false})); // for parsing application/x-www-form-urlencoded
@@ -23,7 +24,44 @@ router.get('/', function(req, res, next) {
 
 
 /*get method for fetch single product*/
-router.get('/:id', function(req, res, next) {
+router.get('/:id', function(req, res, next) 
+{
+
+             
+// fetch the request data
+ const data = req.params;
+
+ // define the validation schema
+  const schema = Joi.object().keys({
+ 
+ 
+      id: Joi.number().integer().min(1).max(2000),
+ 
+     
+ 
+  });
+ 
+  // validate the request data against the schema
+  Joi.validate(data, schema, (err, value) => {
+ 
+      // create a random number as id
+      //const id = Math.ceil(Math.random() * 9999999);
+ 
+      if (err) {
+          // send a 422 error response if validation fails
+          res.status(422).json({
+              status: 'error',
+              message: 'Invalid request data',
+              data: data
+          });
+      } else {
+ 
+ 
+  // else part
+
+
+
+
     var id = req.params.id;
     var sql = `SELECT * FROM products WHERE Id=${id}`;
     db.query(sql, function(err, row, fields) {
@@ -32,6 +70,8 @@ router.get('/:id', function(req, res, next) {
       }
       res.json(row[0])
     })
+      }
+  })
   });
   
 

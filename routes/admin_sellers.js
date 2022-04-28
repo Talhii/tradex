@@ -6,7 +6,7 @@ var bodyParser = require('body-parser');
 const { json } = require('body-parser');
 router.use(bodyParser.json()); // for parsing application/json
 router.use(bodyParser.urlencoded({extended: false})); // for parsing application/x-www-form-urlencoded
-
+const Joi = require('joi');
 
 // ADMIN Getting A List Of Sellers
 
@@ -44,6 +44,39 @@ router.get('/all',ensureToken,(req,res,next)=>
 
 router.get('/:id',ensureToken,(req,res,next)=>
 {    
+
+    
+// fetch the request data
+ const data = req.body;
+
+ // define the validation schema
+  const schema = Joi.object().keys({
+ 
+ 
+      id: Joi.number().integer().min(1).max(2000),
+ 
+     
+ 
+  });
+ 
+  // validate the request data against the schema
+  Joi.validate(data, schema, (err, value) => {
+ 
+      // create a random number as id
+      //const id = Math.ceil(Math.random() * 9999999);
+ 
+      if (err) {
+          // send a 422 error response if validation fails
+          res.status(422).json({
+              status: 'error',
+              message: 'Invalid request data',
+              data: data
+          });
+      } else {
+ 
+ 
+  // else part
+
         jwt.verify(req.token,'my_secret_key',function(err,data){{        
         if(err)
         {
@@ -63,13 +96,55 @@ router.get('/:id',ensureToken,(req,res,next)=>
         })
         }
         }}) 
-});
+    }
+    })
+    });
 
 
 //   Admin Deleting A Seller
 
 router.delete('/delSeller/:id',ensureToken,(req,res,next)=>
     {
+
+
+        
+// fetch the request data
+ const data = req.body;
+
+ // define the validation schema
+  const schema = Joi.object().keys({
+ 
+ 
+      id: Joi.number().integer().min(1).max(2000),
+ 
+     
+ 
+  });
+ 
+  // validate the request data against the schema
+  Joi.validate(data, schema, (err, value) => {
+ 
+      // create a random number as id
+      //const id = Math.ceil(Math.random() * 9999999);
+ 
+      if (err) {
+          // send a 422 error response if validation fails
+          res.status(422).json({
+              status: 'error',
+              message: 'Invalid request data',
+              data: data
+          });
+      } else {
+ 
+ 
+  // else part
+
+
+
+
+
+
+
 
         jwt.verify(req.token,'my_secret_key',function(err,data){{        
             if(err)
@@ -88,6 +163,8 @@ router.delete('/delSeller/:id',ensureToken,(req,res,next)=>
                 })
             }
             }})
+      }
+        })
     });
 
 

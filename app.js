@@ -32,6 +32,7 @@ var mostPopularProducts = require('./routes/most_popular_products');
 var popularProducts = require('./routes/popular_products');
 var productImages = require('./routes/product_images');
 const { normalize } = require('path');
+const { cpuUsage } = require('process');
 
 
 app.use('/productImages',productImages);
@@ -177,6 +178,14 @@ io.on('connection',socket=>{
         justshowbids(data.product)  
     })
 
+    socket.on('getupdatedbid',function(data){
+        updatedshowbids(data.product)  
+    })
+
+    socket.on('getupdatedask',function(data){
+        updatedshowasks(data.product)  
+    })
+
    
 
     function showorders(){
@@ -193,14 +202,31 @@ io.on('connection',socket=>{
        
    
         socket.on('new bid', function(data){
+           
             db.query('INSERT INTO bids (User_Id,User_Name,Product_Id,Bid,Product_Name) VALUES (?,?,?,?,?)',[data.userids,data.usernames,data.productids,data.bid,data.productnames])
+            socket.broadcast.emit('getagainbid',data.productids)
             cbids()   
          })
 
         socket.on('new ask', function(data){ 
             db.query('INSERT INTO asks (User_Id,User_Name,Product_Id,Ask,Product_Name) VALUES (?,?,?,?,?)', [data.userids,data.usernames,data.productids,data.ask,data.productnames])
+            socket.broadcast.emit('getagainask',data.productids)
             casks()
         })   
+
+
+        socket.on('updatebid', function(data){
+           
+            db.query(`update bids set Bid="${data.bid}" where User_Id="${data.userids}" and Product_Id="${data.productids}"`)
+            cbids()   
+         })
+          
+         socket.on('updateask', function(data){
+           
+            db.query(`update asks set Ask="${data.ask}" where User_Id="${data.userids}" and Product_Id="${data.productids}"`)
+            casks()   
+         })
+
 
         socket.on('comparebestask',function(product){
              minimumask =[]
@@ -226,33 +252,41 @@ io.on('connection',socket=>{
        })
         socket.on('updateorders',function(data){
             db.query('INSERT INTO orders (Buyer_Id,Buyer_Name,Seller_Id,Seller_Name,Price,Product_Id,Product_Name) VALUES (?,?,?,?,?,?,?)', [data.buyerid,data.buyername,data.sellerid,data.sellername,data.price,data.productid,data.productname])
-            socket.broadcast.emit('update')
+            socket.broadcast.emit('showupdatedorders')
         })
         
-        socket.on('delete',({deleteask, deletebid})=>{
-            db.query('DELETE FROM asks where Id=?',deleteask)
-            db.query('DELETE FROM bids where Id=?',deletebid)  
+        socket.on('delete',(data)=>{
+            db.query('DELETE FROM asks where Id=?',data.askid)
+            db.query('DELETE FROM bids where Id=?',data.bidid)  
+
+            socket.broadcast.emit('getagainask',data.askingproductid)
+            socket.broadcast.emit('getagainbid',data.bidingproductid)
+
         })
          
 
       socket.on('deletebestask',function(data){
-        db.query('DELETE FROM asks where Id=?',data)
+        db.query('DELETE FROM asks where Id=?',data.id)
+        socket.broadcast.emit('getagainask',data.productid)
       })
 
       socket.on('deletebestbid',function(data){
-        db.query('DELETE FROM bids where Id=?',data)
+        db.query('DELETE FROM bids where Id=?',data.id)
+        socket.broadcast.emit('getagainbid',data.productid)
       })
 
       socket.on('updateordersbestask',function(data){
         db.query('INSERT INTO orders (Buyer_Id,Buyer_Name,Seller_Id,Seller_Name,Price,Product_Id,Product_Name) VALUES (?,?,?,?,?,?,?)', [data.buyerid,data.buyername,data.sellerid,data.sellername,data.price,data.productid,data.productname])
         casks()
-        socket.broadcast.emit('update')
+        socket.broadcast.emit('showupdatedorders')
     })
     socket.on('updateordersbestbid',function(data){
         db.query('INSERT INTO orders (Buyer_Id,Buyer_Name,Seller_Id,Seller_Name,Price,Product_Id,Product_Name) VALUES (?,?,?,?,?,?,?)', [data.buyerid,data.buyername,data.sellerid,data.sellername,data.price,data.productid,data.productname])
         cbids()
-        socket.broadcast.emit('update')
+        socket.broadcast.emit('showupdatedorders')
     })
+
+   
     
      function casks(){
         asks = []
@@ -278,21 +312,23 @@ io.on('connection',socket=>{
          }) 
      }
 
+
+
      function justshowbids(product)
      {
         bids = []
-    
         db.query('SELECT * FROM bids WHERE Product_Id=?',product)
             .on('result', function(data){
-              bids.push(data)
+                bids.push(data) 
             })
             .on('end', function(){
-              socket.emit('initial bids', bids)
+              socket.emit('initial bids',bids)
          }) 
      }
 
      function justshowasks(product)
      {
+        
         asks = []
         db.query('SELECT * FROM asks WHERE Product_Id=?',product)
         .on('result', function(data){
@@ -303,8 +339,36 @@ io.on('connection',socket=>{
             socket.emit('initial asks', asks)  
         })    
      }    
+
+
+     function updatedshowbids(product)
+     {
+        var newbids = []
+        db.query('SELECT * FROM bids WHERE Product_Id=?',product)
+            .on('result', function(data){
+                newbids.push(data) 
+            })
+            .on('end', function(){
+              socket.emit('initial bids', newbids)
+         }) 
+     }
+
+     function updatedshowasks(product)
+     {
+        var newasks = []
+        db.query('SELECT * FROM asks WHERE Product_Id=?',product)
+        .on('result', function(data){
+           
+        newasks.push(data)
+        })
+        .on('end', function(){
+            socket.emit('initial asks', newasks)  
+        })
+     }
+
 })
 
+     
 
 
 module.exports = app;

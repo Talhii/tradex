@@ -4,6 +4,7 @@ var router = express.Router();
 var db = require('../db');
 var bodyParser = require('body-parser');
 const { json } = require('body-parser');
+const Joi = require('joi');
 
 router.use(bodyParser.json()); // for parsing application/json
 router.use(bodyParser.urlencoded({extended: false})); // for parsing application/x-www-form-urlencoded
@@ -150,7 +151,38 @@ router.use(bodyParser.urlencoded({extended: false})); // for parsing application
   });
   
   /*put method for update product*/
- router.put('/update/:id', function(req, res, next) {
+ router.put('/update/:id', function(req, res, next) 
+ {
+
+  
+    
+  // fetch the request data
+ const data = req.body;
+
+ // define the validation schema
+  const schema = Joi.object().keys({
+ 
+      id : Joi.number().integer().min(1).max(2000),
+      name: Joi.string().required(),
+     
+  });
+ 
+  // validate the request data against the schema
+  Joi.validate(data, schema, (err, value) => {
+ 
+      // create a random number as id
+      //const id = Math.ceil(Math.random() * 9999999);
+ 
+      if (err) {
+          // send a 422 error response if validation fails
+          res.status(422).json({
+              status: 'error',
+              message: 'Invalid request data',
+              data: data
+          });
+      } else {
+   // else part
+
     var id = req.params.id;
     var name = req.body.name;
     //var pid = req.body.pid;
@@ -164,11 +196,47 @@ router.use(bodyParser.urlencoded({extended: false})); // for parsing application
       }
      // res.json({'status': 'success'})
     })
+      }
+      })
   });
   
   /*delete method for delete product*/
- router.delete('/delete/:id', function(req, res, next) {
-    var id = req.params.id;
+ router.delete('/delete/:id', function(req, res, next) 
+ {
+
+     
+  // fetch the request data
+ const data = req.body;
+
+ // define the validation schema
+  const schema = Joi.object().keys({
+ 
+      id : Joi.number().integer().min(1).max(2000),
+      
+     
+  });
+ 
+  // validate the request data against the schema
+  Joi.validate(data, schema, (err, value) => {
+ 
+      // create a random number as id
+      //const id = Math.ceil(Math.random() * 9999999);
+ 
+      if (err) {
+          // send a 422 error response if validation fails
+          res.status(422).json({
+              status: 'error',
+              message: 'Invalid request data',
+              data: data
+          });
+      } else {
+   // else part
+
+
+
+
+ 
+  var id = req.params.id;
     var sql = `DELETE FROM buyers WHERE Buyer_Id=${id}`;
     db.query(sql, function(err, result) {
       if(err) {
@@ -176,6 +244,9 @@ router.use(bodyParser.urlencoded({extended: false})); // for parsing application
       }
       res.json({'status': 'success'})
     })
+
+      }
+  })
   });
 
 

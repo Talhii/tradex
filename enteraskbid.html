@@ -29,6 +29,7 @@
      <br>
     <button type="submit" id="send-bid">Send bid</button>
     <button type="submit" id="matchbestask">Order with best price</button>
+    <button type="submit" id="update-bid">Update Bid</button>
 
     <br>
     <br>
@@ -39,6 +40,8 @@
     <br>
     <button type="submit" id="send-ask">Send ask</button>
     <button type="submit" id="matchbestbid">Order with best price</button>
+    <button type="submit" id="update-ask">Update Ask</button>
+    
 
     <div id="yourask"></div>
 
@@ -53,6 +56,8 @@ const sendbid = document.getElementById('send-bid')
 const sendask = document.getElementById('send-ask')
 const matchbestask = document.getElementById('matchbestask')
 const matchbestbid = document.getElementById('matchbestbid')
+const updatebid = document.getElementById('update-bid')
+const updateask = document.getElementById('update-ask')
 const ordermatching = document.getElementById('order-matching')
 
 
@@ -64,12 +69,7 @@ var askInput = document.getElementById('ask-input')
 var bidInput = document.getElementById('bid-input')
 
 
-
-
-
 var a
-
-
 
 sendbid.addEventListener('click',function(){
  //will must get all of these values from frontend automatically this is just for showing its workprocess
@@ -78,18 +78,24 @@ sendbid.addEventListener('click',function(){
     const productids = productid.value
     const productnames = productname.value 
     const bid = bidInput.value
-     yourbid.innerHTML = "Your bid : "+ bid
+    
      if(userids =='' || usernames == '' || productids == '' || productnames == '' || bid == '')
      {
         alert("Please enter all values")
      }
+     else if (isNaN(bid)){
+        alert("Please enter numbervalue")
+     }
      else
      {
         socket.emit('new bid', {userids:userids,usernames: usernames,productids:productids,bid:bid,productnames:productnames})
+        yourbid.innerHTML = "Your bid : "+ bid
      }
+     bidInput.value = ''
      
-    bidInput.value = ''
 })
+
+   
 
 sendask.addEventListener('click',function(){
     //will must get all of these values from frontend automatically this is just for showing its workprocess
@@ -98,15 +104,19 @@ sendask.addEventListener('click',function(){
     const productids = productid.value
     const productnames = productname.value 
     const ask = askInput.value
-    yourask.innerHTML = "Your ask : "+ ask
+    
   
     if(userids =='' || usernames == '' || productids == '' || productnames == '' || ask == '')
     {
        alert("Please enter all values")
     }
+    else if (isNaN(ask)){
+        alert("Please enter numbervalue")
+    }
     else
     {
        socket.emit('new ask', {userids:userids,usernames: usernames,ask: ask,productids:productids,ask:ask,productnames:productnames})
+       yourask.innerHTML = "Your ask : "+ ask
     }
     askInput.value = ''
 })
@@ -142,12 +152,61 @@ matchbestbid.addEventListener('click',function(){
     }
    
 })
+
+updatebid.addEventListener('click',function(){
+ //will must get all of these values from frontend automatically this is just for showing its workprocess
+    const userids = userid.value
+    const usernames = username.value
+    const productids = productid.value
+    const productnames = productname.value 
+    const bid = bidInput.value
+    
+     if(userids =='' || usernames == '' || productids == '' || productnames == '' || bid == '')
+     {
+        alert("Please enter all values")
+     }
+     else if (isNaN(bid)){
+        alert("Please enter numbervalue")
+     }
+     else
+     {
+        socket.emit('updatebid', {userids:userids,usernames: usernames,productids:productids,bid:bid,productnames:productnames})
+        yourbid.innerHTML = "Your Updated bid : "+ bid
+     }
+     bidInput.value = ''
      
+})
+
+updateask.addEventListener('click',function(){
+
+    const userids = userid.value
+    const usernames = username.value
+    const productids = productid.value
+    const productnames = productname.value 
+    const ask = askInput.value
+    
+     if(userids =='' || usernames == '' || productids == '' || productnames == '' || ask == '')
+     {
+        alert("Please enter all values")
+     }
+     else if (isNaN(ask)){
+        alert("Please enter numbervalue")
+     }
+     else
+     {
+        socket.emit('updateask', {userids:userids,usernames: usernames,productids:productids,ask:ask,productnames:productnames})
+        yourask.innerHTML = "Your Updated ask : "+ ask
+     }
+     askInput.value = ''
+     
+})
+
+
     socket.on('comparebestask2',function(data){
         const userids = userid.value
         const usernames = username.value
        ordermatching.innerHTML = "Order Executed with Best ask price : "+ data[0].Ask+"Sellername : "+ data[0].User_Name
-       socket.emit('deletebestask',data[0].Id)
+       socket.emit('deletebestask',{id:data[0].Id,productid:data[0].Product_Id})
       socket.emit('updateordersbestask',{buyerid:userids,buyername:usernames,sellerid:data[0].User_Id,sellername :data[0].User_Name,price : data[0].Ask,productid:data[0].Product_Id,productname:data[0].Product_Name})  
     })
 
@@ -156,7 +215,7 @@ matchbestbid.addEventListener('click',function(){
         const usernames = username.value
 
        ordermatching.innerHTML = "Order Executed with Best bid price : "+ data[0].Bid+" buyername : "+ data[0].User_Name
-       socket.emit('deletebestbid',data[0].Id)
+       socket.emit('deletebestbid',{id:data[0].Id,productid:data[0].Product_Id})
       socket.emit('updateordersbestbid',{buyerid:data[0].User_Id,buyername:data[0].User_Name,sellerid :userids,sellername :usernames,price : data[0].Bid,productid:data[0].Product_Id,productname:data[0].Product_Name})  
     })
 
@@ -168,7 +227,7 @@ matchbestbid.addEventListener('click',function(){
               if(ask1[i].Ask == bid1[j].Bid && ask1[i].Product_Id ==bid1[j].Product_Id )
               {
                   ordermatching.innerHTML ="Order executed : "+"Ask Price :"+ask1[i].Ask+"Productname :"+ask1[i].Product_Name+"  &&  Bid Price : "+bid1[j].Bid+"Productname "+bid1[j].Product_Name
-                  socket.emit('delete',{deleteask:ask1[i].Id,deletebid : bid1[j].Id})
+                  socket.emit('delete',{askid:ask1[i].Id,bidid:bid1[j].Id,askingproductid:ask1[i].Product_Id,bidingproductid : bid1[j].Product_Id})
                   socket.emit('updateorders',{buyerid:bid1[j].User_Id,buyername:bid1[j].User_Name,sellerid :ask1[i].User_Id,sellername :ask1[i].User_Name,price : ask1[i].Ask,productid:bid1[j].Product_Id,productname:bid1[j].Product_Name})
                   a=1
               }
